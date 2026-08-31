@@ -1,0 +1,16 @@
+def localProperties = new Properties()
+def flutterRoot = '/Users/example/flutter'
+
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
+
+android {
+    compileSdkVersion 35
+
+    defaultConfig {
+        applicationId "com.example.legacy"
+        minSdkVersion 21
+        targetSdkVersion 28
+    }
+}

@@ -1,0 +1,45 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor and IDE state
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# Dart and pub
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+coverage/
+doc/api/
+
+# Keep pubspec.lock for this CLI app: reproducible tools are calmer tools.
+!pubspec.lock
+
+# Flutter artifacts that can appear while testing against real projects
+/.flutter-plugins
+/.flutter-plugins-dependencies
+/.metadata
+
+# FVM local SDK checkout
+.fvm/flutter_sdk
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+*.swp
+*.swo
+.history/
+
+# Generated migration scratch space
+migrate_working_dir/
