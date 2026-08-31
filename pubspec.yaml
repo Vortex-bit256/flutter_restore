@@ -1,5 +1,5 @@
 name: flutter_restore
-description: Static compatibility scanner for legacy Flutter Android projects.
+description: Static compatibility scanner for legacy Flutter projects.
 version: 1.0.0
 repository: https://github.com/Vortex-bit256/flutter_restore
 issue_tracker: https://github.com/Vortex-bit256/flutter_restore/issues
@@ -7,6 +7,7 @@ issue_tracker: https://github.com/Vortex-bit256/flutter_restore/issues
 topics:
   - flutter
   - android
+  - ios
   - gradle
   - migration
   - cli

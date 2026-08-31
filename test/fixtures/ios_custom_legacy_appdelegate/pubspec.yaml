@@ -1,0 +1,3 @@
+name: ios_custom_legacy_appdelegate
+environment:
+  sdk: ^3.8.0

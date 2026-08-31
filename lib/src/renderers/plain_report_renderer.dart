@@ -30,7 +30,23 @@ class PlainReportRenderer extends ReportRenderer {
       )
       ..writeln('  .flutter-plugins: ${android.hasFlutterPluginsFile}')
       ..writeln('  Android v1 embedding: ${android.usesAndroidV1Embedding}')
-      ..writeln('  Plugin DSL: ${android.usesPluginDsl}')
+      ..writeln('  Plugin DSL: ${android.usesPluginDsl}');
+
+    final ios = snapshot.ios;
+    buffer
+      ..writeln('')
+      ..writeln(_style('iOS', _Ansi.bold))
+      ..writeln('  Deployment target: ${ios.deploymentTarget ?? 'unknown'}')
+      ..writeln('  Podfile platform: ${ios.podfilePlatformTarget ?? 'unknown'}')
+      ..writeln('  CocoaPods: ${ios.usesCocoaPods}')
+      ..writeln('  SwiftPM: ${ios.usesSwiftPM}')
+      ..writeln(
+        '  Mixed dependency management: ${ios.usesMixedDependencyManagement}',
+      )
+      ..writeln('  UIScene lifecycle: ${ios.uisceneLifecycleStatus.label}')
+      ..writeln(
+        '  AppDelegate lifecycle: ${ios.appDelegateLifecycleStyle.label}',
+      )
       ..writeln('')
       ..writeln(_style('Findings', _Ansi.bold));
 
@@ -48,6 +64,12 @@ class PlainReportRenderer extends ReportRenderer {
       buffer.writeln('    ${finding.message}');
       if (finding.location != null) {
         buffer.writeln('    ${_style(finding.location!, _Ansi.dim)}');
+      }
+      if (finding.detectedValue != null) {
+        buffer.writeln('    detected: ${finding.detectedValue}');
+      }
+      if (finding.recommendation != null) {
+        buffer.writeln('    recommendation: ${finding.recommendation}');
       }
     }
 

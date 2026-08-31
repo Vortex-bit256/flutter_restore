@@ -1,0 +1,12 @@
+{
+  objects = {
+    DEBUG = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+      };
+      name = Debug;
+    };
+    PACKAGE = { isa = XCRemoteSwiftPackageReference; };
+  };
+}

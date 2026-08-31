@@ -6,6 +6,7 @@ import 'package:yaml/yaml.dart';
 
 import 'package:flutter_restore/src/models/android_snapshot.dart';
 import 'package:flutter_restore/src/models/project_snapshot.dart';
+import 'package:flutter_restore/src/scanners/ios_scanner.dart';
 
 class ProjectScanner {
   ProjectSnapshot scan(String rootPath) {
@@ -22,6 +23,7 @@ class ProjectScanner {
       pubspecName: _readPubspecName(pubspecFile),
       flutterRevision: _readFlutterRevision(metadataFile),
       android: _AndroidScanner(normalizedRoot).scan(),
+      ios: IosScanner(normalizedRoot).scan(),
     );
   }
 

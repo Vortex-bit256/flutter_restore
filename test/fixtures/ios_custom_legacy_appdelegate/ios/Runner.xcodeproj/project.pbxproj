@@ -1,0 +1,13 @@
+{
+  objects = {
+    DEBUG = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+        ENABLE_BITCODE = YES;
+        SWIFT_VERSION = 4.2;
+      };
+      name = Debug;
+    };
+  };
+}

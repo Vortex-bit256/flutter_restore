@@ -1,0 +1,3 @@
+name: ios_uiscene_missing
+environment:
+  sdk: ^3.8.0

@@ -1,0 +1,4 @@
+platform :ios, '13.0'
+# --no-swift-package-manager
+target 'Runner' do
+end

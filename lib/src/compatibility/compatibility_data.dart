@@ -39,6 +39,7 @@ class CompatibilityData {
     required this.agpJavaRequirements,
     required this.agpCompileSdkLimits,
     required this.gradleJavaSupport,
+    required this.minimumSupportedIos,
   });
 
   factory CompatibilityData.defaults() {
@@ -135,6 +136,7 @@ class CompatibilityData {
           maxJava: 21,
         ),
       ],
+      minimumSupportedIos: Version.parse('13.0.0'),
     );
   }
 
@@ -142,6 +144,7 @@ class CompatibilityData {
   final List<AgpJavaRequirement> agpJavaRequirements;
   final List<AgpCompileSdkLimit> agpCompileSdkLimits;
   final List<GradleJavaSupport> gradleJavaSupport;
+  final Version minimumSupportedIos;
 
   AgpGradleRange? agpGradleRangeFor(Version agp) {
     return agpGradleRanges.where((range) => range.agp.allows(agp)).firstOrNull;

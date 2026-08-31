@@ -1,0 +1,27 @@
+// !$*UTF8*$!
+{
+  objects = {
+    DEBUG = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+      };
+      name = Debug;
+    };
+    PROFILE = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+      };
+      name = Profile;
+    };
+    RELEASE = {
+      isa = XCBuildConfiguration;
+      buildSettings = {
+        IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+      };
+      name = Release;
+    };
+    FFRAMEWORK = { path = Flutter.framework; };
+  };
+}

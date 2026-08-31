@@ -1,0 +1,5 @@
+platform :ios, '13.0'
+target 'Runner' do
+  pod 'Flutter'
+  pod 'LegacyLocalPlugin', :path => 'LegacyLocalPlugin'
+end

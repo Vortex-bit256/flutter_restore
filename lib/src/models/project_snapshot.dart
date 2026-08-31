@@ -1,4 +1,5 @@
 import 'android_snapshot.dart';
+import 'ios_snapshot.dart';
 
 class ProjectSnapshot {
   const ProjectSnapshot({
@@ -9,6 +10,7 @@ class ProjectSnapshot {
     required this.pubspecName,
     required this.flutterRevision,
     required this.android,
+    required this.ios,
   });
 
   final String rootPath;
@@ -18,6 +20,7 @@ class ProjectSnapshot {
   final String? pubspecName;
   final String? flutterRevision;
   final AndroidSnapshot android;
+  final IosSnapshot ios;
 
   Map<String, Object?> toJson() => {
     'rootPath': rootPath,
@@ -27,5 +30,6 @@ class ProjectSnapshot {
     'pubspecName': pubspecName,
     'flutterRevision': flutterRevision,
     'android': android.toJson(),
+    'ios': ios.toJson(),
   };
 }
