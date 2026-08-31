@@ -1,3 +1,22 @@
+## 1.0.1
+
+- Expanded the scanner beyond Android-only recovery checks with an iOS project
+  snapshot.
+- Added iOS compatibility findings for deployment targets, Podfile platform
+  baselines, CocoaPods-only projects, mixed CocoaPods and SwiftPM dependency
+  management, SwiftPM opt-out flags, and local plugin deployment target
+  conflicts.
+- Added iOS runner migration signals for missing or incomplete UIScene setup,
+  custom AppDelegate lifecycle code, manual `GeneratedPluginRegistrant` calls,
+  legacy Flutter engine initialization, old Flutter build scripts, legacy
+  Flutter.framework embedding, and legacy/custom Xcode build settings.
+- Included iOS facts in plain text and JSON scan reports.
+- Added fixture coverage for legacy CocoaPods, modern SwiftPM, mixed dependency
+  management, old deployment targets, missing UIScene configuration, and custom
+  legacy AppDelegate projects.
+- Updated package metadata and refreshed locked dev dependency versions for the
+  pub.dev release.
+
 ## 1.0.0
 
 Initial stable release.
