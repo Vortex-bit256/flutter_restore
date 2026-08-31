@@ -45,7 +45,7 @@ Future<int> runFlutterRestore(
     return 64;
   }
 
-  // Тут вся вертикаль MVP: читаем факты, прогоняем правила, печатаем отчет.
+  // Read project facts, run compatibility rules, and print the selected report.
   final snapshot = ProjectScanner().scan(command.rest.single);
   final findings = RuleRunner().evaluate(snapshot);
   final renderer = _renderer(json: command['json'] as bool);

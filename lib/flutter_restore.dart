@@ -1,3 +1,10 @@
+/// Static compatibility scanner for legacy Flutter Android projects.
+///
+/// The public library exposes the scanner, compatibility rules, result models,
+/// report renderers, and CLI entry point used by the `flutter_restore`
+/// executable.
+library;
+
 export 'src/cli.dart';
 export 'src/compatibility/compatibility_data.dart';
 export 'src/models/android_snapshot.dart';
