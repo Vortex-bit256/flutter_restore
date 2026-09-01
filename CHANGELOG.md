@@ -1,3 +1,11 @@
+## 1.0.3
+
+- Fixed the changelog so it references the current package versions.
+
+## 1.0.2
+
+- Added package documentation.
+
 ## 1.0.1
 
 - Expanded the scanner beyond Android-only recovery checks with an iOS project
