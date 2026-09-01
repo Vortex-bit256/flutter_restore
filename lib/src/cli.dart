@@ -9,6 +9,7 @@ import 'package:flutter_restore/src/renderers/report_renderer.dart';
 import 'package:flutter_restore/src/rules/rule_runner.dart';
 import 'package:flutter_restore/src/scanners/project_scanner.dart';
 
+/// Runs the `flutter_restore` command-line interface.
 Future<int> runFlutterRestore(
   List<String> arguments, {
   required IOSink stdout,

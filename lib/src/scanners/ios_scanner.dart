@@ -5,9 +5,12 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'package:flutter_restore/src/models/ios_snapshot.dart';
 
+/// Reads iOS runner files and produces an [IosSnapshot].
 class IosScanner {
+  /// Creates an iOS scanner rooted at [rootPath].
   IosScanner(this.rootPath);
 
+  /// Path to the Flutter project being scanned.
   final String rootPath;
 
   static const _pbxprojPath = 'ios/Runner.xcodeproj/project.pbxproj';
@@ -17,6 +20,7 @@ class IosScanner {
   static const _swiftAppDelegatePath = 'ios/Runner/AppDelegate.swift';
   static const _objcAppDelegatePath = 'ios/Runner/AppDelegate.m';
 
+  /// Scans iOS files without invoking Xcode or CocoaPods.
   IosSnapshot scan() {
     final iosDir = Directory(p.join(rootPath, 'ios'));
     if (!iosDir.existsSync()) {

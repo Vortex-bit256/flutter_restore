@@ -8,7 +8,9 @@ import 'package:flutter_restore/src/models/android_snapshot.dart';
 import 'package:flutter_restore/src/models/project_snapshot.dart';
 import 'package:flutter_restore/src/scanners/ios_scanner.dart';
 
+/// Reads a Flutter project from disk and builds a static compatibility snapshot.
 class ProjectScanner {
+  /// Scans [rootPath] without invoking Flutter, Gradle, or platform tooling.
   ProjectSnapshot scan(String rootPath) {
     final normalizedRoot = p.normalize(Directory(rootPath).absolute.path);
     final pubspecFile = File(p.join(normalizedRoot, 'pubspec.yaml'));

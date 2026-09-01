@@ -2,7 +2,9 @@ import 'package:flutter_restore/src/models/finding.dart';
 import 'package:flutter_restore/src/models/project_snapshot.dart';
 import 'package:flutter_restore/src/renderers/report_renderer.dart';
 
+/// Renders scan results as a human-readable terminal report.
 class PlainReportRenderer extends ReportRenderer {
+  /// Creates a plain text report renderer.
   const PlainReportRenderer();
 
   @override

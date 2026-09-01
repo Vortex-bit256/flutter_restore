@@ -4,14 +4,20 @@ import 'package:flutter_restore/src/models/ios_snapshot.dart';
 import 'package:flutter_restore/src/models/project_snapshot.dart';
 import 'package:flutter_restore/src/rules/compatibility_rule.dart';
 
+/// Runs a set of compatibility rules against a project snapshot.
 class RuleRunner {
+  /// Creates a runner with optional custom compatibility [data] and [rules].
   RuleRunner({CompatibilityData? data, List<CompatibilityRule>? rules})
     : data = data ?? CompatibilityData.defaults(),
       rules = rules ?? defaultRules;
 
+  /// Compatibility tables supplied to rules.
   final CompatibilityData data;
+
+  /// Rules evaluated by this runner.
   final List<CompatibilityRule> rules;
 
+  /// Default rules used by the command-line scanner.
   static const defaultRules = <CompatibilityRule>[
     // Держим порядок от базовой формы проекта к Android-совместимости.
     RequiredFilesRule(),
@@ -27,6 +33,7 @@ class RuleRunner {
     IosXcodeProjectConsistencyRule(),
   ];
 
+  /// Evaluates all configured rules and sorts findings by severity.
   List<Finding> evaluate(ProjectSnapshot snapshot) {
     final findings = [
       for (final rule in rules) ...rule.evaluate(snapshot, data),
@@ -45,7 +52,9 @@ class RuleRunner {
   };
 }
 
+/// Checks iOS deployment targets against the supported Flutter baseline.
 class IosDeploymentTargetRule extends CompatibilityRule {
+  /// Creates an iOS deployment target rule.
   const IosDeploymentTargetRule();
 
   @override
@@ -147,7 +156,9 @@ class IosDeploymentTargetRule extends CompatibilityRule {
   }
 }
 
+/// Detects risky or inconsistent iOS dependency management setups.
 class IosDependencyManagementRule extends CompatibilityRule {
+  /// Creates an iOS dependency management rule.
   const IosDependencyManagementRule();
 
   @override
@@ -224,7 +235,9 @@ class IosDependencyManagementRule extends CompatibilityRule {
   }
 }
 
+/// Checks whether iOS scene lifecycle files are internally consistent.
 class IosSceneLifecycleRule extends CompatibilityRule {
+  /// Creates an iOS scene lifecycle rule.
   const IosSceneLifecycleRule();
 
   @override
@@ -269,7 +282,9 @@ class IosSceneLifecycleRule extends CompatibilityRule {
   }
 }
 
+/// Detects legacy or custom iOS AppDelegate integration patterns.
 class IosAppDelegateLegacyRule extends CompatibilityRule {
+  /// Creates an iOS AppDelegate legacy rule.
   const IosAppDelegateLegacyRule();
 
   @override
@@ -355,7 +370,9 @@ class IosAppDelegateLegacyRule extends CompatibilityRule {
   }
 }
 
+/// Detects stale Flutter references in iOS Xcode project files.
 class IosXcodeProjectConsistencyRule extends CompatibilityRule {
+  /// Creates an iOS Xcode project consistency rule.
   const IosXcodeProjectConsistencyRule();
 
   @override
@@ -427,7 +444,9 @@ String _location(String sourceFile, int? line) {
   return line == null ? sourceFile : '$sourceFile:$line';
 }
 
+/// Checks for project files required for reliable restoration analysis.
 class RequiredFilesRule extends CompatibilityRule {
+  /// Creates a required files rule.
   const RequiredFilesRule();
 
   @override
@@ -466,7 +485,9 @@ class RequiredFilesRule extends CompatibilityRule {
   }
 }
 
+/// Checks whether the Gradle version is compatible with modern Java.
 class JavaGradleRule extends CompatibilityRule {
+  /// Creates a Java-to-Gradle compatibility rule.
   const JavaGradleRule();
 
   @override
@@ -502,7 +523,9 @@ class JavaGradleRule extends CompatibilityRule {
   }
 }
 
+/// Checks whether Android Gradle Plugin and Gradle versions are compatible.
 class AgpGradleRule extends CompatibilityRule {
+  /// Creates an AGP-to-Gradle compatibility rule.
   const AgpGradleRule();
 
   @override
@@ -553,7 +576,9 @@ class AgpGradleRule extends CompatibilityRule {
   }
 }
 
+/// Checks whether Android Gradle Plugin has the Java version it requires.
 class AgpJavaRule extends CompatibilityRule {
+  /// Creates an AGP-to-Java compatibility rule.
   const AgpJavaRule();
 
   @override
@@ -579,7 +604,9 @@ class AgpJavaRule extends CompatibilityRule {
   }
 }
 
+/// Checks whether `compileSdk` is supported by the detected AGP version.
 class AgpCompileSdkRule extends CompatibilityRule {
+  /// Creates an AGP-to-compile-SDK compatibility rule.
   const AgpCompileSdkRule();
 
   @override
@@ -607,7 +634,9 @@ class AgpCompileSdkRule extends CompatibilityRule {
   }
 }
 
+/// Detects old Android Flutter integration patterns.
 class FlutterAndroidMigrationRule extends CompatibilityRule {
+  /// Creates a Flutter Android migration rule.
   const FlutterAndroidMigrationRule();
 
   @override
