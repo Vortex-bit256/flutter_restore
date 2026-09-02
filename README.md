@@ -1,103 +1,48 @@
 # flutter_restore
 
-`flutter_restore` is a static compatibility scanner for aging Flutter projects.
+Static compatibility scanner for restoring and auditing old Flutter projects.
 
-It helps you answer the first hard question in any Flutter recovery job:
+`flutter_restore` reads project files, builds a structured snapshot, runs
+compatibility rules, and prints a plain text or JSON report. It does not run
+Flutter, Gradle, Xcode, CMake, package resolution, or any build step.
 
-> What exactly is old, risky, or incompatible here before I try to run it?
+## Table of Contents
 
-The tool reads project files, builds a structured snapshot of the project, runs
-compatibility rules against that snapshot, and prints a human-readable or JSON
-report. It does **not** run Flutter, Gradle, Android Studio, or any build step.
+- [Overview](#overview)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Supported Platforms](#supported-platforms)
+- [Rules](#rules)
+- [Reports](#reports)
+- [Exit Codes](#exit-codes)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Maintainers](#maintainers)
 
-That is the core idea: inspect the project before the toolchain gets involved.
+## Overview
 
-## Why This Exists
+Old Flutter projects often fail before application code is reached. The usual
+failure points are stale runner files, obsolete Gradle or CMake setup, old web
+bootstrap templates, deprecated platform integration, and native build settings
+that modern tooling no longer expects.
 
-Old Flutter projects often fail long before the app code becomes relevant.
+`flutter_restore` helps answer:
 
-The first failure is usually hidden somewhere in the Android build stack:
-Gradle, Android Gradle Plugin, Kotlin, Java, `compileSdk`, legacy Flutter Gradle
-integration, or the Android embedding version. These failures can be noisy,
-slow, and difficult to untangle because modern tools try to execute a project
-that was created for a very different ecosystem.
+```text
+What is old, risky, or incompatible here before I try to run it?
+```
 
-`flutter_restore` gives you a map before you start the climb.
+The scanner is designed for:
 
-It is designed for:
-
-- restoring abandoned Flutter apps
+- restoring abandoned Flutter applications
 - auditing projects before migration
-- understanding why a project no longer builds
-- estimating Android migration effort
-- producing machine-readable compatibility reports for automation
-- separating project facts from build-tool side effects
-
-## Main Feature
-
-The main feature of `flutter_restore` is **static compatibility analysis without
-executing the project**.
-
-Instead of asking Gradle or Flutter to evaluate old scripts, the scanner reads
-files directly and extracts facts into a `ProjectSnapshot`. Compatibility rules
-then analyze that snapshot and produce `Finding` objects with clear severity
-levels.
-
-This makes the tool useful even when:
-
-- Flutter is not installed
-- Gradle cannot start
-- the Android project uses obsolete Gradle syntax
-- dependencies are no longer resolvable
-- the local Java version is incompatible with the old build
-- CI should inspect repositories without running a full build
-
-## MVP Scope
-
-The current MVP supports:
-
-- `flutter_restore scan <path>`
-- `--json`
-- `--platform all|android|ios|linux|windows|web`
-- reading `pubspec.yaml`
-- reading `pubspec.lock`
-- reading `.metadata`
-- Android compatibility scanning
-- iOS compatibility scanning
-- Linux, Windows, and web target detection
-- plain terminal report
-- JSON report
-- fixture-based test coverage for legacy and modern Flutter Android projects
-
-Android facts currently detected:
-
-- Gradle version
-- Android Gradle Plugin version
-- Kotlin version
-- `compileSdk`
-- `minSdk`
-- `targetSdk`
-- legacy Flutter Gradle `apply from`
-- `.flutter-plugins`
-- Android v1 embedding
-- Gradle Plugin DSL usage
-
-Compatibility rules currently included:
-
-- Java ↔ Gradle
-- Android Gradle Plugin ↔ Gradle
-- Android Gradle Plugin ↔ Java
-- Android Gradle Plugin ↔ `compileSdk`
-- legacy Flutter Android migration signals
-- Linux CMake and GTK pkg-config runner signals
-- Windows CMake, run loop, title bar, version metadata, and first-frame redraw
-  migration signals
-- Web bootstrap, base href, loader API, and service worker migration signals
-- obsolete Linux/Windows `debugDefaultTargetPlatformOverride` workarounds
+- estimating native migration effort
+- producing machine-readable compatibility reports
+- inspecting fragile repositories without executing old build scripts
 
 ## Installation
 
-From the repository root:
+From this repository:
 
 ```sh
 dart pub get
@@ -109,7 +54,7 @@ Run directly:
 dart run flutter_restore scan path/to/flutter/project
 ```
 
-Or activate locally during development:
+Activate locally during development:
 
 ```sh
 dart pub global activate --source path .
@@ -118,29 +63,127 @@ flutter_restore scan path/to/flutter/project
 
 ## Usage
 
-Plain report:
+Run a plain text scan:
 
 ```sh
 dart run flutter_restore scan path/to/project
 ```
 
-JSON report:
+Run a JSON scan:
 
 ```sh
 dart run flutter_restore scan --json path/to/project
 ```
 
-Platform-specific report:
+Scan every supported platform:
 
 ```sh
+dart run flutter_restore scan --platform all path/to/project
+```
+
+Scan a single platform:
+
+```sh
+dart run flutter_restore scan --platform android path/to/project
+dart run flutter_restore scan --platform ios path/to/project
+dart run flutter_restore scan --platform linux path/to/project
+dart run flutter_restore scan --platform windows path/to/project
 dart run flutter_restore scan --platform web path/to/project
 ```
 
-The plain report is intended for humans and uses colored severity labels in the
-terminal. The JSON report is intended for scripts, CI, dashboards, or future
-automation.
+## Supported Platforms
 
-## Example Output
+| Platform | Static Facts | Compatibility Rules |
+| --- | --- | --- |
+| Android | Gradle, AGP, Kotlin, SDK levels, Flutter Gradle integration, embedding | Java/Gradle, AGP/Gradle, AGP/Java, AGP/SDK, legacy Flutter Android migration |
+| iOS | deployment targets, Podfile, SwiftPM, CocoaPods, AppDelegate, Xcode project settings | deployment target, dependency management, lifecycle, AppDelegate, Xcode project consistency |
+| Linux | runner files, CMake baseline, GTK pkg-config wiring | target presence, runner completeness, CMake minimum, GTK pkg-config |
+| Windows | runner files, CMake baseline, run loop, version metadata, title bar, first-frame redraw | target presence, runner completeness, CMake minimum, run loop, version info, dark title bar, ForceRedraw |
+| Web | index template, manifest, favicon, bootstrap, service worker wiring, base href | target presence, runner completeness, bootstrap, loader API, service worker, base href |
+
+## Rules
+
+Rules emit `Finding` objects with stable ids, severity, location, detected
+value, and recommendation fields when useful.
+
+Project-wide rules:
+
+- `missing-pubspec`
+- `missing-pubspec-lock`
+- `missing-metadata`
+
+Android rules:
+
+- `gradle-java-17-unsupported`
+- `missing-gradle-version`
+- `missing-agp-version`
+- `unknown-agp-gradle-range`
+- `agp-gradle-mismatch`
+- `agp-java-requirement`
+- `agp-compile-sdk-too-new`
+- `legacy-flutter-gradle-apply`
+- `flutter-plugins-file`
+- `android-v1-embedding`
+- `missing-plugin-dsl`
+
+iOS rules:
+
+- `ios-deployment-target-too-low`
+- `ios-podfile-platform-too-low`
+- `ios-deployment-target-mismatch`
+- `ios-plugin-deployment-target-conflict`
+- `ios-plugin-deployment-target-too-low`
+- `ios-swiftpm-disabled`
+- `ios-legacy-cocoapods-only`
+- `ios-mixed-dependency-management`
+- `ios-legacy-flutter-podfile-integration`
+- `ios-potential-cocoapods-only-plugins`
+- `ios-uiscene-incomplete`
+- `ios-custom-appdelegate-only-lifecycle`
+- `ios-manual-generated-plugin-registrant`
+- `ios-custom-platform-integration-in-appdelegate`
+- `ios-implicit-engine-lifecycle`
+- `ios-legacy-flutter-engine-initialization`
+- `ios-suspicious-flutter-xcconfig`
+- `ios-old-flutter-build-script`
+- `ios-legacy-framework-embedding`
+- `ios-legacy-build-setting`
+
+Linux rules:
+
+- `linux-platform-directory-missing`
+- `linux-runner-files-incomplete`
+- `linux-cmake-minimum-too-low`
+- `linux-gtk-pkg-config-missing`
+
+Windows rules:
+
+- `windows-platform-directory-missing`
+- `windows-runner-files-incomplete`
+- `windows-cmake-minimum-too-low`
+- `windows-legacy-run-loop`
+- `windows-version-info-not-tool-driven`
+- `windows-dark-title-bar-support-missing`
+- `windows-force-redraw-missing`
+
+Web rules:
+
+- `web-platform-directory-missing`
+- `web-runner-files-incomplete`
+- `web-bootstrap-missing`
+- `web-base-href-missing`
+- `web-legacy-load-entrypoint`
+- `web-custom-bootstrap-incomplete`
+- `web-deprecated-service-worker-version`
+- `web-manual-service-worker-registration`
+
+Desktop rules:
+
+- `desktop-legacy-target-platform-override`
+
+## Reports
+
+Plain text output is intended for humans and uses colored severity labels.
 
 ```text
 flutter_restore scan
@@ -161,16 +204,13 @@ Findings
   [HIGH] Gradle 5.6.4 is too old for Java 17
     This Gradle line supports Java up to 16; modern Android builds commonly use Java 17.
     android/gradle/wrapper/gradle-wrapper.properties
-
-  [HIGH] Legacy Flutter Gradle apply detected
-    The Android project applies flutter.gradle with apply from, which is incompatible with newer Flutter Gradle integration.
-    android/app/build.gradle
 ```
 
-## JSON Report Shape
+JSON output is intended for scripts, CI, dashboards, and later automation.
 
 ```json
 {
+  "platforms": ["android"],
   "snapshot": {
     "rootPath": "/projects/legacy_app",
     "hasPubspec": true,
@@ -203,113 +243,42 @@ Findings
 }
 ```
 
-## Severity Levels
+Severity levels:
 
-`flutter_restore` reports findings using four severity levels:
-
-- `BLOCKER`: the project cannot be analyzed as expected
+- `BLOCKER`: analysis cannot continue as expected, or migration is blocked
 - `HIGH`: likely build or migration failure
 - `MEDIUM`: important migration risk or missing precision
 - `INFO`: useful context for restoration planning
 
-The scanner exits with code `2` when a `BLOCKER` finding is present. Otherwise,
-it exits with code `0`, even if compatibility risks are found. This keeps the MVP
-useful for audits where findings should be collected rather than treated as a
-hard CI failure.
+## Exit Codes
+
+| Code | Meaning |
+| --- | --- |
+| `0` | scan completed without blocker findings |
+| `2` | scan completed and at least one blocker finding was reported |
+| `64` | command line usage error |
 
 ## Architecture
 
-The project is intentionally split into small layers:
+The project is split into small layers:
 
-- scanners only read files and collect facts
-- models represent the discovered project state
-- compatibility data is stored separately from rule logic
+- scanners read files and collect facts
+- models represent discovered project state
+- compatibility data lives separately from rule logic
 - rules analyze a `ProjectSnapshot`
 - renderers format output
-- the CLI only wires the flow together
-
-The main flow is:
+- the CLI wires the flow together
 
 ```text
 scan -> ProjectSnapshot -> CompatibilityRule -> Finding -> report
 ```
 
-This structure matters because compatibility data changes over time. Keeping
-tables separate from rules makes it easier to update Gradle, AGP, Java, and SDK
-knowledge without rewriting the scanner.
+The rule runner is split with Dart `part` files:
 
-## Project Model
-
-`ProjectSnapshot` is the central data model. It contains high-level Flutter
-project facts and an Android-specific snapshot.
-
-`Finding` is the central result model. Each finding has:
-
-- stable `id`
-- `severity`
-- short `title`
-- explanatory `message`
-- optional file `location`
-
-These models are deliberately simple so they can be serialized, tested, and
-used by other tools later.
-
-## Problems It Can Reveal
-
-`flutter_restore` can help identify issues such as:
-
-- a Gradle wrapper too old for modern Java
-- an Android Gradle Plugin version outside the expected Gradle range
-- an AGP version that requires a newer Java version
-- a `compileSdk` value too new for the detected AGP line
-- old `buildscript`/`classpath` Android plugin setup
-- missing Gradle Plugin DSL
-- legacy `apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"`
-- old `.flutter-plugins` registry file
-- Android v1 embedding through `io.flutter.app.FlutterActivity`
-- missing `pubspec.lock`
-- missing Flutter `.metadata`
-- Linux runners with an old `cmake_minimum_required` value
-- Linux CMake files missing GTK pkg-config wiring
-- Windows runners that still contain pre-Flutter 2.5 `run_loop` files
-- Windows runners missing version metadata support from Flutter build values
-- Windows runners missing dark title bar support
-- Windows runners missing the Flutter 3.13 first-frame `ForceRedraw` migration
-- Web templates missing current bootstrap wiring
-- Web templates with deprecated `serviceWorkerVersion` or `loadEntrypoint`
-  usage
-- Web templates with old manual `flutter_service_worker.js` registration
-- Web templates without a `base href`
-- Dart code that still overrides Linux/Windows to `TargetPlatform.fuchsia`
-
-These are not cosmetic issues. They are often the difference between a clean
-migration plan and hours of confusing build failures.
-
-## What It Does Not Do
-
-The MVP intentionally does not:
-
-- modify project files
-- auto-fix Gradle scripts
-- run `flutter`
-- run `gradle`
-- resolve packages
-- analyze iOS
-- provide a web UI
-- provide an IDE plugin
-
-This restraint is part of the design. The scanner should be safe to run on old
-or fragile repositories because it only reads files.
-
-## Compatibility Data
-
-Compatibility data lives outside the rule logic. The MVP includes practical
-tables for common Gradle, Android Gradle Plugin, Java, and `compileSdk`
-relationships.
-
-These tables are meant to evolve. The scanner architecture is built so future
-updates can improve compatibility coverage without changing the shape of
-findings or the scanner pipeline.
+- `rule_runner.project.dart`
+- `rule_runner.android.dart`
+- `rule_runner.ios.dart`
+- `rule_runner.platforms.dart`
 
 ## Development
 
@@ -337,32 +306,9 @@ Format code:
 dart format .
 ```
 
-The test suite includes:
+The test suite includes scanner tests, rule tests, CLI integration tests, and
+fixtures for legacy and modern Flutter project layouts.
 
-- scanner unit tests
-- rule unit tests
-- CLI integration tests
-- legacy Flutter Android fixtures
-- modern Flutter Android fixtures
+## Maintainers
 
-## Roadmap Ideas
-
-Possible future work:
-
-- richer compatibility tables
-- more Gradle syntax variants
-- plugin dependency analysis from `pubspec.lock`
-- `.flutter-plugins-dependencies` support
-- Android manifest analysis
-- migration hints grouped by effort
-- SARIF or GitHub Actions output
-- optional suggested fixes without modifying files
-- iOS analysis as a separate scanner layer
-
-## Philosophy
-
-Restoring an old Flutter project should start with observation, not panic.
-
-`flutter_restore` is built around that idea. It gives you a readable, structured
-view of the project before modern tools try to execute old assumptions. That
-makes migrations calmer, audits faster, and recovery work easier to explain.
+- Vortex-bit256
