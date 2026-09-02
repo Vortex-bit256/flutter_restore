@@ -1,7 +1,6 @@
 # flutter_restore
 
-`flutter_restore` is a static compatibility scanner for aging Flutter Android
-projects.
+`flutter_restore` is a static compatibility scanner for aging Flutter projects.
 
 It helps you answer the first hard question in any Flutter recovery job:
 
@@ -59,10 +58,13 @@ The current MVP supports:
 
 - `flutter_restore scan <path>`
 - `--json`
+- `--platform all|android|ios|linux|windows|web`
 - reading `pubspec.yaml`
 - reading `pubspec.lock`
 - reading `.metadata`
 - Android compatibility scanning
+- iOS compatibility scanning
+- Linux, Windows, and web target detection
 - plain terminal report
 - JSON report
 - fixture-based test coverage for legacy and modern Flutter Android projects
@@ -87,6 +89,11 @@ Compatibility rules currently included:
 - Android Gradle Plugin ↔ Java
 - Android Gradle Plugin ↔ `compileSdk`
 - legacy Flutter Android migration signals
+- Linux CMake and GTK pkg-config runner signals
+- Windows CMake, run loop, title bar, version metadata, and first-frame redraw
+  migration signals
+- Web bootstrap, base href, loader API, and service worker migration signals
+- obsolete Linux/Windows `debugDefaultTargetPlatformOverride` workarounds
 
 ## Installation
 
@@ -121,6 +128,12 @@ JSON report:
 
 ```sh
 dart run flutter_restore scan --json path/to/project
+```
+
+Platform-specific report:
+
+```sh
+dart run flutter_restore scan --platform web path/to/project
 ```
 
 The plain report is intended for humans and uses colored severity labels in the
@@ -256,6 +269,18 @@ used by other tools later.
 - Android v1 embedding through `io.flutter.app.FlutterActivity`
 - missing `pubspec.lock`
 - missing Flutter `.metadata`
+- Linux runners with an old `cmake_minimum_required` value
+- Linux CMake files missing GTK pkg-config wiring
+- Windows runners that still contain pre-Flutter 2.5 `run_loop` files
+- Windows runners missing version metadata support from Flutter build values
+- Windows runners missing dark title bar support
+- Windows runners missing the Flutter 3.13 first-frame `ForceRedraw` migration
+- Web templates missing current bootstrap wiring
+- Web templates with deprecated `serviceWorkerVersion` or `loadEntrypoint`
+  usage
+- Web templates with old manual `flutter_service_worker.js` registration
+- Web templates without a `base href`
+- Dart code that still overrides Linux/Windows to `TargetPlatform.fuchsia`
 
 These are not cosmetic issues. They are often the difference between a clean
 migration plan and hours of confusing build failures.

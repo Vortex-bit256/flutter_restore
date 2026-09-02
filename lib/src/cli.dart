@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 import 'package:flutter_restore/src/models/finding.dart';
+import 'package:flutter_restore/src/models/scan_platform.dart';
 import 'package:flutter_restore/src/renderers/json_report_renderer.dart';
 import 'package:flutter_restore/src/renderers/plain_report_renderer.dart';
 import 'package:flutter_restore/src/renderers/report_renderer.dart';
@@ -18,11 +19,26 @@ Future<int> runFlutterRestore(
   final parser = ArgParser()
     ..addCommand(
       'scan',
-      ArgParser()..addFlag(
-        'json',
-        negatable: false,
-        help: 'Print machine-readable JSON.',
-      ),
+      ArgParser()
+        ..addFlag(
+          'json',
+          negatable: false,
+          help: 'Print machine-readable JSON.',
+        )
+        ..addOption(
+          'platform',
+          defaultsTo: 'all',
+          allowed: [
+            'all',
+            ...ScanPlatform.values.map((platform) => platform.label),
+          ],
+          help: 'Print and evaluate one platform, or all platforms.',
+          allowedHelp: {
+            'all': 'Include every supported platform.',
+            for (final platform in ScanPlatform.values)
+              platform.label: 'Include ${platform.label}.',
+          },
+        ),
     );
 
   final ArgResults results;
@@ -47,9 +63,13 @@ Future<int> runFlutterRestore(
   }
 
   // Read project facts, run compatibility rules, and print the selected report.
+  final platforms = parseScanPlatforms(command['platform'] as String)!;
   final snapshot = ProjectScanner().scan(command.rest.single);
-  final findings = RuleRunner().evaluate(snapshot);
-  final renderer = _renderer(json: command['json'] as bool);
+  final findings = RuleRunner().evaluate(snapshot, platforms: platforms);
+  final renderer = _renderer(
+    json: command['json'] as bool,
+    platforms: platforms,
+  );
   stdout.writeln(renderer.render(snapshot, findings));
 
   return findings.any((finding) => finding.severity == Severity.blocker)
@@ -57,10 +77,15 @@ Future<int> runFlutterRestore(
       : 0;
 }
 
-ReportRenderer _renderer({required bool json}) {
-  return json ? const JsonReportRenderer() : const PlainReportRenderer();
+ReportRenderer _renderer({
+  required bool json,
+  required Set<ScanPlatform> platforms,
+}) {
+  return json
+      ? JsonReportRenderer(platforms: platforms)
+      : PlainReportRenderer(platforms: platforms);
 }
 
 String _usage(ArgParser parser) {
-  return 'Usage: flutter_restore scan [--json] <path>\n\n${parser.usage}';
+  return 'Usage: flutter_restore scan [--json] [--platform <platform|all>] <path>\n\n${parser.usage}';
 }

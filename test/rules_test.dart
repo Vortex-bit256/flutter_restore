@@ -15,6 +15,80 @@ void main() {
     expect(ids, contains('missing-plugin-dsl'));
   });
 
+  test('filters compatibility rules by selected platform', () {
+    final snapshot = ProjectScanner().scan('test/fixtures/legacy_flutter');
+    final findings = RuleRunner().evaluate(
+      snapshot,
+      platforms: const {ScanPlatform.ios},
+    );
+    final ids = findings.map((finding) => finding.id).toSet();
+
+    expect(ids, isNot(contains('gradle-java-17-unsupported')));
+    expect(ids, isNot(contains('legacy-flutter-gradle-apply')));
+  });
+
+  test('reports missing desktop and web platform directories', () {
+    final snapshot = ProjectScanner().scan('test/fixtures/legacy_flutter');
+    final findings = RuleRunner().evaluate(
+      snapshot,
+      platforms: const {
+        ScanPlatform.linux,
+        ScanPlatform.windows,
+        ScanPlatform.web,
+      },
+    );
+    final ids = findings.map((finding) => finding.id).toSet();
+
+    expect(ids, contains('linux-platform-directory-missing'));
+    expect(ids, contains('windows-platform-directory-missing'));
+    expect(ids, contains('web-platform-directory-missing'));
+    expect(ids, isNot(contains('gradle-java-17-unsupported')));
+  });
+
+  test('accepts complete desktop and web platform structures', () {
+    final snapshot = ProjectScanner().scan('test/fixtures/modern_flutter');
+    final findings = RuleRunner().evaluate(
+      snapshot,
+      platforms: const {
+        ScanPlatform.linux,
+        ScanPlatform.windows,
+        ScanPlatform.web,
+      },
+    );
+    final ids = findings.map((finding) => finding.id).toSet();
+
+    expect(ids, isNot(contains('linux-runner-files-incomplete')));
+    expect(ids, isNot(contains('windows-runner-files-incomplete')));
+    expect(ids, isNot(contains('web-runner-files-incomplete')));
+  });
+
+  test('reports legacy Linux, Windows, and web migration findings', () {
+    final snapshot = ProjectScanner().scan('test/fixtures/desktop_web_legacy');
+    final findings = RuleRunner().evaluate(
+      snapshot,
+      platforms: const {
+        ScanPlatform.linux,
+        ScanPlatform.windows,
+        ScanPlatform.web,
+      },
+    );
+    final ids = findings.map((finding) => finding.id).toSet();
+
+    expect(ids, contains('linux-cmake-minimum-too-low'));
+    expect(ids, contains('linux-gtk-pkg-config-missing'));
+    expect(ids, contains('windows-cmake-minimum-too-low'));
+    expect(ids, contains('windows-legacy-run-loop'));
+    expect(ids, contains('windows-version-info-not-tool-driven'));
+    expect(ids, contains('windows-dark-title-bar-support-missing'));
+    expect(ids, contains('windows-force-redraw-missing'));
+    expect(ids, contains('web-base-href-missing'));
+    expect(ids, contains('web-legacy-load-entrypoint'));
+    expect(ids, contains('web-custom-bootstrap-incomplete'));
+    expect(ids, contains('web-deprecated-service-worker-version'));
+    expect(ids, contains('web-manual-service-worker-registration'));
+    expect(ids, contains('desktop-legacy-target-platform-override'));
+  });
+
   test('keeps modern project mostly informational', () {
     final snapshot = ProjectScanner().scan('test/fixtures/modern_flutter');
     final findings = RuleRunner().evaluate(snapshot);

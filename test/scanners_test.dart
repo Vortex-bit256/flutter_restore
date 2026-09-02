@@ -36,6 +36,17 @@ void main() {
     expect(snapshot.android.usesPluginDsl, isTrue);
   });
 
+  test('scans Linux, Windows, and web project facts', () {
+    final snapshot = ProjectScanner().scan('test/fixtures/modern_flutter');
+
+    expect(snapshot.linux.hasDirectory, isTrue);
+    expect(snapshot.linux.missingExpectedFiles, isEmpty);
+    expect(snapshot.windows.hasDirectory, isTrue);
+    expect(snapshot.windows.missingExpectedFiles, isEmpty);
+    expect(snapshot.web.hasDirectory, isTrue);
+    expect(snapshot.web.missingExpectedFiles, isEmpty);
+  });
+
   test('scans old iOS deployment target facts', () {
     final snapshot = ProjectScanner().scan(
       'test/fixtures/ios_old_deployment_target',

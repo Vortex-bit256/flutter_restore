@@ -1,5 +1,7 @@
 import 'android_snapshot.dart';
 import 'ios_snapshot.dart';
+import 'platform_snapshot.dart';
+import 'scan_platform.dart';
 
 /// Complete static snapshot of a Flutter project.
 class ProjectSnapshot {
@@ -13,6 +15,9 @@ class ProjectSnapshot {
     required this.flutterRevision,
     required this.android,
     required this.ios,
+    required this.linux,
+    required this.windows,
+    required this.web,
   });
 
   /// Absolute path that was scanned.
@@ -39,15 +44,29 @@ class ProjectSnapshot {
   /// iOS-specific project facts.
   final IosSnapshot ios;
 
+  /// Linux desktop project facts.
+  final PlatformSnapshot linux;
+
+  /// Windows desktop project facts.
+  final PlatformSnapshot windows;
+
+  /// Web project facts.
+  final PlatformSnapshot web;
+
   /// Converts this snapshot to the JSON report shape.
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson({
+    Set<ScanPlatform> platforms = allScanPlatforms,
+  }) => {
     'rootPath': rootPath,
     'hasPubspec': hasPubspec,
     'hasPubspecLock': hasPubspecLock,
     'hasMetadata': hasMetadata,
     'pubspecName': pubspecName,
     'flutterRevision': flutterRevision,
-    'android': android.toJson(),
-    'ios': ios.toJson(),
+    if (platforms.contains(ScanPlatform.android)) 'android': android.toJson(),
+    if (platforms.contains(ScanPlatform.ios)) 'ios': ios.toJson(),
+    if (platforms.contains(ScanPlatform.linux)) 'linux': linux.toJson(),
+    if (platforms.contains(ScanPlatform.windows)) 'windows': windows.toJson(),
+    if (platforms.contains(ScanPlatform.web)) 'web': web.toJson(),
   };
 }

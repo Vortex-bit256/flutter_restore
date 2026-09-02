@@ -1,0 +1,1 @@
+void activate_application() {}

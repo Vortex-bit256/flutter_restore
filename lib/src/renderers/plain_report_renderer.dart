@@ -1,11 +1,16 @@
 import 'package:flutter_restore/src/models/finding.dart';
+import 'package:flutter_restore/src/models/platform_snapshot.dart';
 import 'package:flutter_restore/src/models/project_snapshot.dart';
+import 'package:flutter_restore/src/models/scan_platform.dart';
 import 'package:flutter_restore/src/renderers/report_renderer.dart';
 
 /// Renders scan results as a human-readable terminal report.
 class PlainReportRenderer extends ReportRenderer {
   /// Creates a plain text report renderer.
-  const PlainReportRenderer();
+  const PlainReportRenderer({this.platforms = allScanPlatforms});
+
+  /// Platforms included in the report.
+  final Set<ScanPlatform> platforms;
 
   @override
   String render(ProjectSnapshot snapshot, List<Finding> findings) {
@@ -17,38 +22,56 @@ class PlainReportRenderer extends ReportRenderer {
       buffer.writeln('Package: ${snapshot.pubspecName}');
     }
 
-    final android = snapshot.android;
-    buffer
-      ..writeln('')
-      ..writeln(_style('Android', _Ansi.bold))
-      ..writeln('  Gradle: ${android.gradleVersion ?? 'unknown'}')
-      ..writeln('  AGP: ${android.agpVersion ?? 'unknown'}')
-      ..writeln('  Kotlin: ${android.kotlinVersion ?? 'unknown'}')
-      ..writeln(
-        '  SDK: compile=${android.compileSdk ?? 'unknown'}, min=${android.minSdk ?? 'unknown'}, target=${android.targetSdk ?? 'unknown'}',
-      )
-      ..writeln(
-        '  Legacy flutter.gradle apply: ${android.usesLegacyFlutterGradleApply}',
-      )
-      ..writeln('  .flutter-plugins: ${android.hasFlutterPluginsFile}')
-      ..writeln('  Android v1 embedding: ${android.usesAndroidV1Embedding}')
-      ..writeln('  Plugin DSL: ${android.usesPluginDsl}');
+    if (platforms.contains(ScanPlatform.android)) {
+      final android = snapshot.android;
+      buffer
+        ..writeln('')
+        ..writeln(_style('Android', _Ansi.bold))
+        ..writeln('  Gradle: ${android.gradleVersion ?? 'unknown'}')
+        ..writeln('  AGP: ${android.agpVersion ?? 'unknown'}')
+        ..writeln('  Kotlin: ${android.kotlinVersion ?? 'unknown'}')
+        ..writeln(
+          '  SDK: compile=${android.compileSdk ?? 'unknown'}, min=${android.minSdk ?? 'unknown'}, target=${android.targetSdk ?? 'unknown'}',
+        )
+        ..writeln(
+          '  Legacy flutter.gradle apply: ${android.usesLegacyFlutterGradleApply}',
+        )
+        ..writeln('  .flutter-plugins: ${android.hasFlutterPluginsFile}')
+        ..writeln('  Android v1 embedding: ${android.usesAndroidV1Embedding}')
+        ..writeln('  Plugin DSL: ${android.usesPluginDsl}');
+    }
 
-    final ios = snapshot.ios;
+    if (platforms.contains(ScanPlatform.ios)) {
+      final ios = snapshot.ios;
+      buffer
+        ..writeln('')
+        ..writeln(_style('iOS', _Ansi.bold))
+        ..writeln('  Deployment target: ${ios.deploymentTarget ?? 'unknown'}')
+        ..writeln(
+          '  Podfile platform: ${ios.podfilePlatformTarget ?? 'unknown'}',
+        )
+        ..writeln('  CocoaPods: ${ios.usesCocoaPods}')
+        ..writeln('  SwiftPM: ${ios.usesSwiftPM}')
+        ..writeln(
+          '  Mixed dependency management: ${ios.usesMixedDependencyManagement}',
+        )
+        ..writeln('  UIScene lifecycle: ${ios.uisceneLifecycleStatus.label}')
+        ..writeln(
+          '  AppDelegate lifecycle: ${ios.appDelegateLifecycleStyle.label}',
+        );
+    }
+
+    if (platforms.contains(ScanPlatform.linux)) {
+      _writePlatformSnapshot(buffer, 'Linux', snapshot.linux);
+    }
+    if (platforms.contains(ScanPlatform.windows)) {
+      _writePlatformSnapshot(buffer, 'Windows', snapshot.windows);
+    }
+    if (platforms.contains(ScanPlatform.web)) {
+      _writePlatformSnapshot(buffer, 'Web', snapshot.web);
+    }
+
     buffer
-      ..writeln('')
-      ..writeln(_style('iOS', _Ansi.bold))
-      ..writeln('  Deployment target: ${ios.deploymentTarget ?? 'unknown'}')
-      ..writeln('  Podfile platform: ${ios.podfilePlatformTarget ?? 'unknown'}')
-      ..writeln('  CocoaPods: ${ios.usesCocoaPods}')
-      ..writeln('  SwiftPM: ${ios.usesSwiftPM}')
-      ..writeln(
-        '  Mixed dependency management: ${ios.usesMixedDependencyManagement}',
-      )
-      ..writeln('  UIScene lifecycle: ${ios.uisceneLifecycleStatus.label}')
-      ..writeln(
-        '  AppDelegate lifecycle: ${ios.appDelegateLifecycleStyle.label}',
-      )
       ..writeln('')
       ..writeln(_style('Findings', _Ansi.bold));
 
@@ -77,6 +100,23 @@ class PlainReportRenderer extends ReportRenderer {
 
     return buffer.toString().trimRight();
   }
+}
+
+void _writePlatformSnapshot(
+  StringBuffer buffer,
+  String title,
+  PlatformSnapshot snapshot,
+) {
+  buffer
+    ..writeln('')
+    ..writeln(_style(title, _Ansi.bold))
+    ..writeln('  Directory: ${snapshot.hasDirectory}')
+    ..writeln(
+      '  Detected files: ${snapshot.detectedFiles.isEmpty ? 'none' : snapshot.detectedFiles.join(', ')}',
+    )
+    ..writeln(
+      '  Missing expected files: ${snapshot.missingExpectedFiles.isEmpty ? 'none' : snapshot.missingExpectedFiles.join(', ')}',
+    );
 }
 
 // Цвет нужен только обычному отчету: JSON остается сухим и машинным.
